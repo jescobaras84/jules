@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ invoice_form.as_p }}
+    <hr>
+    <h3>Invoice Items</h3>
+    {{ item_formset.management_form }}
+    {% for form in item_formset %}
+        <div class="item-form">
+            {{ form.id }} <!-- Important for formset -->
+            {% if form.instance.pk %} {{ form.DELETE }} {% endif %} <!-- Show delete for existing items if editing -->
+            {{ form.as_p }}
+            <hr>
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Create Invoice</button>
+    <a href="{% url 'invoicing:invoice_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+<!-- Include JavaScript for dynamically adding/removing formset forms if desired (more advanced) -->
+{% endblock %}

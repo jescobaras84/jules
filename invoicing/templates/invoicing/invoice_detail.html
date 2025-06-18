@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Invoice #{{ invoice.id }}{% endblock %}
+{% block content %}
+<h2>Invoice #{{ invoice.id }}</h2>
+<p><strong>Customer:</strong> {{ invoice.customer_name }}</p>
+<p><strong>Date:</strong> {{ invoice.invoice_date|date:"Y-m-d H:i" }}</p>
+<p><strong>Total Amount:</strong> ${{ invoice.total_amount|floatformat:2 }}</p>
+
+<h3>Invoice Items:</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity (ml)</th> <!-- This is inventory quantity -->
+            <th>Unit Price (as sold)</th> <!-- This is price of the unit sold -->
+            <th>Line Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in invoice.items.all %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity_ml|floatformat:2 }} ml</td>
+            <td>${{ item.unit_price|floatformat:2 }}</td> <!-- This was price per input unit -->
+            <td>${{ item.line_total|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No items on this invoice.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'invoicing:invoice_list' %}" class="btn btn-info">Back to Invoice List</a>
+{% endblock %}

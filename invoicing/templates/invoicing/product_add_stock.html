@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Add Stock</button>
+    <a href="{% if form.initial.product %}{% url 'invoicing:product_detail' form.initial.product.pk %}{% else %}{% url 'invoicing:product_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

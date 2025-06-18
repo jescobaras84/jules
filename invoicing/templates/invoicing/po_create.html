@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ po_form.as_p }}
+    <hr>
+    <h3>Items to Order</h3>
+    {{ item_formset.management_form }}
+    {% for form in item_formset %}
+        <div class="item-form">
+            {{ form.id }}
+            {% if form.instance.pk %} {{ form.DELETE }} {% endif %}
+            {{ form.as_p }}
+            <hr>
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Create Purchase Order</button>
+    <a href="{% url 'invoicing:po_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

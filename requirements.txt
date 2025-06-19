@@ -1,0 +1,17 @@
+# Django framework
+Django>=3.2,<4.3  # Usamos un rango que incluye versiones LTS (3.2, 4.2) y recientes estables.
+
+# WSGI HTTP Server for production
+gunicorn>=20.1.0,<22.0
+
+PostgreSQL database connector #(recomendado para producción)
+# Descomenta este si vas a usar PostgreSQL en DigitalOcean App Platform:
+psycopg2-binary>=2.9.0,<3.0
+
+# MySQL database connector (alternativa)
+# Si prefieres MySQL, comenta psycopg2-binary y descomenta este:
+# mysqlclient>=2.1.0,<2.3
+
+# Para manejar variables de entorno (opcional pero buena práctica para settings.py)
+# python-decouple>=3.0,<4.0
+# dj-database-url>=1.0,<2.0 # Ayuda a configurar la BD desde una URL (común en PaaS)

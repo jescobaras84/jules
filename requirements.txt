@@ -4,8 +4,7 @@ Django>=3.2,<4.3  # Usamos un rango que incluye versiones LTS (3.2, 4.2) y recie
 # WSGI HTTP Server for production
 gunicorn>=20.1.0,<22.0
 
-PostgreSQL database connector #(recomendado para producción)
-# Descomenta este si vas a usar PostgreSQL en DigitalOcean App Platform:
+# PostgreSQL database connector (recomendado para producción)
 psycopg2-binary>=2.9.0,<3.0
 
 # MySQL database connector (alternativa)

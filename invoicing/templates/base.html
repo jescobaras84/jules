@@ -18,10 +18,18 @@
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:home' %}">Home</a></li>
                 {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:invoice_list' %}">Sales Invoices</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:po_list' %}">Purchase Orders</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="contactsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Contactos
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="contactsDropdown">
+                            <a class="dropdown-item" href="{% url 'invoicing:customer_list' %}">Clientes</a>
+                            <a class="dropdown-item" href="{% url 'invoicing:supplier_list' %}">Proveedores</a>
+                        </div>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:product_list' %}">Products</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:invoice_list' %}">Sales Invoices</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'invoicing:po_list' %}">Purchase Orders</a></li>
-                    <!-- Add other links like Invoices, Purchase Orders later -->
                 {% endif %}
             </ul>
             <ul class="navbar-nav">
@@ -29,7 +37,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#">Welcome, {{ user.username }}!</a>
                     </li>
-                    {% if user.is_superuser or "Admin" in user.groups.all.0.name %}
+                    {% if user.is_superuser or "Admin" in user.groups.all.0.name %} {# This group check might still be fragile, consider custom tag or view context #}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'admin:index' %}" target="_blank">Admin Site</a>
                     </li>

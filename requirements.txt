@@ -1,0 +1,8 @@
+# Django framework
+Django>=3.2,<4.3
+
+# WSGI HTTP Server for production
+gunicorn>=20.1.0,<22.0
+
+# PostgreSQL database connector (recommended for production)
+psycopg2-binary>=2.9.0,<3.0

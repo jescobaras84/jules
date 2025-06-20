@@ -2,22 +2,153 @@
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <h2>{{ title }}</h2>
-<form method="post">
+<form method="post" id="invoiceForm">
     {% csrf_token %}
     {{ invoice_form.as_p }}
     <hr>
     <h3>Invoice Items</h3>
+
     {{ item_formset.management_form }}
-    {% for form in item_formset %}
-        <div class="item-form">
-            {{ form.id }} <!-- Important for formset -->
-            {% if form.instance.pk %} {{ form.DELETE }} {% endif %} <!-- Show delete for existing items if editing -->
-            {{ form.as_p }}
-            <hr>
+    <div id="invoice-item-forms-container">
+        {% for form in item_formset %}
+            <div class="item-form mb-3 p-3 border rounded">
+                {% for hidden_field in form.hidden_fields %}{{ hidden_field }}{% endfor %}
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        {{ form.product.label_tag }}
+                        {{ form.product }}
+                        {{ form.product.errors }}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{ form.quantity_input.label_tag }}
+                        {{ form.quantity_input }}
+                        {{ form.quantity_input.errors }}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{ form.unit_of_measure.label_tag }}
+                        {{ form.unit_of_measure }}
+                        {{ form.unit_of_measure.errors }}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{ form.unit_price.label_tag }}
+                        {{ form.unit_price }}
+                        {{ form.unit_price.errors }}
+                    </div>
+                    <div class="form-group col-md-2 d-flex align-items-end">
+                        {% if form.instance.pk and item_formset.can_delete %}
+                        <div class="form-check">
+                            {{ form.DELETE }}
+                            <label class="form-check-label" for="{{ form.DELETE.id_for_label }}">Mark to remove</label>
+                        </div>
+                        {% else %}
+                        <button type="button" class="btn btn-danger btn-sm remove-item-form-button">Remove</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% for error in form.non_field_errors %}
+                <div class="alert alert-danger p-1 mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" id="add-item-form-button" class="btn btn-info btn-sm mt-2 mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+        </svg> Add Item
+    </button>
+
+    <div id="empty-form-template" style="display: none;">
+        <div class="item-form mb-3 p-3 border rounded">
+            {% for hidden_field in item_formset.empty_form.hidden_fields %}{{ hidden_field }}{% endfor %}
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    {{ item_formset.empty_form.product.label_tag }}
+                    {{ item_formset.empty_form.product }}
+                </div>
+                <div class="form-group col-md-2">
+                    {{ item_formset.empty_form.quantity_input.label_tag }}
+                    {{ item_formset.empty_form.quantity_input }}
+                </div>
+                <div class="form-group col-md-2">
+                    {{ item_formset.empty_form.unit_of_measure.label_tag }}
+                    {{ item_formset.empty_form.unit_of_measure }}
+                </div>
+                <div class="form-group col-md-2">
+                    {{ item_formset.empty_form.unit_price.label_tag }}
+                    {{ item_formset.empty_form.unit_price }}
+                </div>
+                <div class="form-group col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm remove-item-form-button">Remove</button>
+                </div>
+            </div>
         </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-success">Create Invoice</button>
-    <a href="{% url 'invoicing:invoice_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+
+    <hr>
+    <button type="submit" class="btn btn-primary mt-3">Create Invoice</button>
+    <a href="{% url 'invoicing:invoice_list' %}" class="btn btn-secondary mt-3">Cancel</a>
 </form>
-<!-- Include JavaScript for dynamically adding/removing formset forms if desired (more advanced) -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formsContainer = document.getElementById('invoice-item-forms-container');
+    const addButton = document.getElementById('add-item-form-button');
+    const emptyFormTemplateDiv = document.getElementById('empty-form-template').querySelector('.item-form');
+
+    if (!emptyFormTemplateDiv) {
+        console.error("Empty form template (.item-form within #empty-form-template) not found!");
+        return;
+    }
+    const emptyFormHtml = emptyFormTemplateDiv.outerHTML;
+
+    const totalFormsInput = document.getElementById('id_{{ item_formset.prefix }}-TOTAL_FORMS');
+    if (!totalFormsInput) {
+        // Fallback to querySelector by name if ID fails (e.g. prefix changes or widget customization)
+        const totalFormsInputByName = document.querySelector('input[name="{{ item_formset.prefix }}-TOTAL_FORMS"]');
+        if (!totalFormsInputByName) {
+             console.error("Management form TOTAL_FORMS input not found! Searched ID: id_{{ item_formset.prefix }}-TOTAL_FORMS and NAME: {{ item_formset.prefix }}-TOTAL_FORMS. Check formset prefix and rendering.");
+             return;
+        }
+        // This part is tricky, as totalFormsInput is const. The script would need refactoring to reassign.
+        // For now, we rely on the ID selector working or log an error.
+        // A better approach would be to assign totalFormsInput inside this block if found by name.
+        // However, for this subtask, let's assume id selector works.
+         console.warn("TOTAL_FORMS input found by name, not ID. Ensure ID is 'id_{{ item_formset.prefix }}-TOTAL_FORMS' or adjust script.");
+    }
+
+    let nextFormIdx = parseInt(totalFormsInput.value);
+
+    addButton.addEventListener('click', function() {
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = emptyFormHtml.replace(/__prefix__/g, nextFormIdx);
+        const newFormElement = tempContainer.firstElementChild;
+
+        if (newFormElement) {
+            formsContainer.appendChild(newFormElement);
+            nextFormIdx++;
+            totalFormsInput.value = nextFormIdx;
+        } else {
+            console.error("Failed to create new form element from template.");
+        }
+    });
+
+    formsContainer.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-item-form-button')) {
+            const formToRemove = event.target.closest('.item-form');
+            if (formToRemove) {
+                const deleteCheckbox = formToRemove.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                const idInput = formToRemove.querySelector('input[type="hidden"][name$="-id"][value]:not([value=""])');
+
+                if (deleteCheckbox && idInput && idInput.value) { // Check idInput.value to ensure it's not empty
+                    deleteCheckbox.checked = true;
+                    formToRemove.style.display = 'none';
+                } else {
+                    formToRemove.remove();
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

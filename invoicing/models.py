@@ -38,7 +38,8 @@ class Product(models.Model):
 class Invoice(models.Model):
     # Link to User model (e.g., salesperson who created the invoice)
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    customer_name = models.CharField(max_length=255) # Simplified customer details for now
+    # customer_name = models.CharField(max_length=255) # Simplified customer details for now
+    customer = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Customer"))
     invoice_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     # Add created_at and updated_at fields
@@ -46,7 +47,8 @@ class Invoice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Invoice {self.id} for {self.customer_name} on {self.invoice_date.strftime('%Y-%m-%d')}"
+        display_name = self.customer.name if self.customer else "N/A"
+        return f"Invoice {self.id} for {display_name} on {self.invoice_date.strftime('%Y-%m-%d')}"
 
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, related_name='items', on_delete=models.CASCADE)
@@ -66,7 +68,8 @@ class InvoiceItem(models.Model):
 
 class PurchaseOrder(models.Model):
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True) # User who created PO
-    supplier_name = models.CharField(max_length=255) # Simplified supplier details
+    # supplier_name = models.CharField(max_length=255) # Simplified supplier details
+    supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Supplier"))
     order_date = models.DateTimeField(auto_now_add=True)
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     is_fulfilled = models.BooleanField(default=False)
@@ -75,7 +78,8 @@ class PurchaseOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"PO {self.id} from {self.supplier_name} on {self.order_date.strftime('%Y-%m-%d')}"
+        display_name = self.supplier.name if self.supplier else "N/A"
+        return f"PO {self.id} from {display_name} on {self.order_date.strftime('%Y-%m-%d')}"
 
 class PurchaseOrderItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, related_name='items', on_delete=models.CASCADE)
@@ -90,3 +94,65 @@ class PurchaseOrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity_ml} ml of {self.product.name} for PO {self.purchase_order.id}"
+
+class Customer(models.Model):
+    ID_TYPE_CHOICES = [
+        ('juridica', _('Cédula Jurídica')),
+        ('fisica', _('Cédula Física')),
+        ('dimex', _('DIMEX')),
+        ('otro', _('Otro (Especificar en notas)')),
+    ]
+
+    name = models.CharField(_("Name or Company Name"), max_length=255)
+    id_type = models.CharField(_("ID Type"), max_length=10, choices=ID_TYPE_CHOICES, default='fisica')
+    id_number = models.CharField(_("ID Number"), max_length=50, blank=True, null=True, help_text=_("Leave blank if not applicable or using 'Otro' ID type"))
+
+    address = models.TextField(_("Physical Address"), blank=True, null=True)
+    email = models.EmailField(_("Primary Email"), max_length=254, blank=True, null=True)
+    phone = models.CharField(_("Primary Phone"), max_length=30, blank=True, null=True)
+    secondary_email = models.EmailField(_("Secondary Email"), max_length=254, blank=True, null=True)
+    secondary_phone = models.CharField(_("Secondary Phone"), max_length=30, blank=True, null=True)
+
+    notes_cxc = models.TextField(_("Notes (Accounts Receivable)"), blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("Customer")
+        verbose_name_plural = _("Customers")
+        ordering = ['name']
+
+class Supplier(models.Model):
+    ID_TYPE_CHOICES = [
+        ('juridica', _('Cédula Jurídica')),
+        ('fisica', _('Cédula Física')),
+        ('dimex', _('DIMEX')),
+        ('otro', _('Otro (Especificar en notas)')),
+    ]
+
+    name = models.CharField(_("Name or Company Name"), max_length=255)
+    id_type = models.CharField(_("ID Type"), max_length=10, choices=ID_TYPE_CHOICES, default='juridica')
+    id_number = models.CharField(_("ID Number"), max_length=50, blank=True, null=True, help_text=_("Leave blank if not applicable or using 'Otro' ID type"))
+
+    address = models.TextField(_("Physical Address"), blank=True, null=True)
+    email = models.EmailField(_("Primary Email"), max_length=254, blank=True, null=True)
+    phone = models.CharField(_("Primary Phone"), max_length=30, blank=True, null=True)
+    secondary_email = models.EmailField(_("Secondary Email"), max_length=254, blank=True, null=True)
+    secondary_phone = models.CharField(_("Secondary Phone"), max_length=30, blank=True, null=True)
+
+    notes_cxp = models.TextField(_("Notes (Accounts Payable)"), blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("Supplier")
+        verbose_name_plural = _("Suppliers")
+        ordering = ['name']

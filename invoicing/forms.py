@@ -22,11 +22,11 @@ from django.forms import inlineformset_factory
 from .models import Invoice, InvoiceItem # Product is already imported
 
 class InvoiceForm(forms.ModelForm):
-    customer_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    # customer_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'})) # Replaced by FK
     # invoice_date will be auto_now_add
     class Meta:
         model = Invoice
-        fields = ['customer_name'] # Add other fields if any
+        fields = ['customer'] # Add other fields if any
 
 class InvoiceItemForm(forms.ModelForm):
     product = forms.ModelChoiceField(queryset=Product.objects.all(), widget=forms.Select(attrs={'class': 'form-control product-select'}))
@@ -60,11 +60,11 @@ InvoiceItemFormSet = inlineformset_factory(
 from .models import PurchaseOrder, PurchaseOrderItem # Product, Invoice, InvoiceItem already imported
 
 class PurchaseOrderForm(forms.ModelForm):
-    supplier_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    # supplier_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'})) # Replaced by FK
     # order_date will be auto_now_add
     class Meta:
         model = PurchaseOrder
-        fields = ['supplier_name'] # Add other fields if any, like expected_delivery_date
+        fields = ['supplier'] # Add other fields if any, like expected_delivery_date
 
 class PurchaseOrderItemForm(forms.ModelForm):
     product = forms.ModelChoiceField(queryset=Product.objects.all(), widget=forms.Select(attrs={'class': 'form-control product-select'}))

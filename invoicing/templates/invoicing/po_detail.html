@@ -39,7 +39,7 @@
     </tbody>
 </table>
 
-{% if not purchase_order.is_fulfilled and user.is_authenticated and (user.is_superuser or "Admin" in user.groups.all.0.name or "InventoryManager" in user.groups.all.0.name) %}
+{% if not purchase_order.is_fulfilled and user.is_authenticated and user.is_superuser %}
 <form method="post" action="{% url 'invoicing:po_fulfill' purchase_order.pk %}" class="mt-3">
     {% csrf_token %}
     <button type="submit" class="btn btn-success">Mark as Fulfilled & Add Stock</button>

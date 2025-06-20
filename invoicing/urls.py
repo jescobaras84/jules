@@ -28,3 +28,24 @@ urlpatterns += [
     path('purchase_orders/<int:pk>/', views.purchase_order_detail_view, name='po_detail'),
     path('purchase_orders/<int:pk>/fulfill/', views.purchase_order_fulfill_view, name='po_fulfill'),
 ]
+
+# Customer URLs
+urlpatterns += [
+    path('customers/', views.customer_list_view, name='customer_list'),
+    path('customers/new/', views.customer_create_view, name='customer_create'),
+    path('customers/<int:pk>/', views.customer_detail_view, name='customer_detail'),
+    path('customers/<int:pk>/edit/', views.customer_update_view, name='customer_update'),
+]
+
+# Supplier URLs
+urlpatterns += [
+    path('suppliers/', views.supplier_list_view, name='supplier_list'),
+    path('suppliers/new/', views.supplier_create_view, name='supplier_create'),
+    path('suppliers/<int:pk>/', views.supplier_detail_view, name='supplier_detail'),
+    path('suppliers/<int:pk>/edit/', views.supplier_update_view, name='supplier_update'),
+]
+
+# AJAX URLs
+urlpatterns += [
+    path('ajax/add_customer/', views.ajax_add_customer, name='ajax_add_customer'),
+]

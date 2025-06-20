@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'tu_clave_secreta_por_defecto_p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True' # Ejemplo: Cargar de variable de entorno, por defecto True para desarrollo
 
-ALLOWED_HOSTS = [] # Deberás configurar esto para producción, ej: ['tu_dominio.com']
+ALLOWED_HOSTS = ['jules-ikyj.onrender.com', 'localhost', '127.0.0.1'] # Deberás configurar esto para producción, ej: ['tu_dominio.com']
 # Si usas DigitalOcean App Platform, ellos suelen manejar esto o te dan una variable para poner aquí.
 
 

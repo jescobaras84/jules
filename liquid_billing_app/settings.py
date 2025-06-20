@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,18 @@ SECRET_KEY = "django-insecure-9135j8tc5b_4z+-nt@1bq3_%_^6w)*7)xzds@xap&um(=cj9##
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS
+# Load from environment variable DJANGO_ALLOWED_HOSTS, expected to be a comma-separated string
+# e.g., DJANGO_ALLOWED_HOSTS="your-app.onrender.com,yourdomain.com"
+ALLOWED_HOSTS_ENV = os.environ.get('DJANGO_ALLOWED_HOSTS')
+
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
+elif DEBUG: # If DEBUG is True and no env var, allow typical local dev hosts
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]'] # Django's default if empty & DEBUG=True
+else: # DEBUG is False and no env var
+    ALLOWED_HOSTS = [] # This will cause Django to not serve requests until configured.
+                       # Or raise ImproperlyConfigured as a stricter measure.
 
 
 # Application definition

@@ -2,9 +2,9 @@
 from django import forms
 from django.forms import inlineformset_factory
 from .models import (
-    Product, Invoice, InvoiceItem,
+    Product, Invoice, InvoiceItem, 
     PurchaseOrder, PurchaseOrderItem,
-    Customer, Supplier # Ensure Customer and Supplier are imported
+    Customer, Supplier # CRITICAL: Ensure Customer and Supplier are imported
 )
 from decimal import Decimal
 
@@ -27,7 +27,7 @@ class AddStockForm(forms.Form):
 class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
-        fields = ['customer']
+        fields = ['customer'] # Changed from customer_name
 
 class InvoiceItemForm(forms.ModelForm):
     product = forms.ModelChoiceField(queryset=Product.objects.all(), widget=forms.Select(attrs={'class': 'form-control product-select'}))
@@ -46,7 +46,7 @@ InvoiceItemFormSet = inlineformset_factory(
     fields=['product', 'quantity_input', 'unit_of_measure', 'unit_price'],
     extra=1,
     can_delete=True,
-    widgets={
+    widgets={ 
         'product': forms.Select(attrs={'class': 'form-control product-select'}),
         'quantity_input': forms.NumberInput(attrs={'class': 'form-control quantity-input'}),
         'unit_of_measure': forms.Select(attrs={'class': 'form-control unit-select'}),
@@ -57,7 +57,7 @@ InvoiceItemFormSet = inlineformset_factory(
 class PurchaseOrderForm(forms.ModelForm):
     class Meta:
         model = PurchaseOrder
-        fields = ['supplier']
+        fields = ['supplier'] # Changed from supplier_name
 
 class PurchaseOrderItemForm(forms.ModelForm):
     product = forms.ModelChoiceField(queryset=Product.objects.all(), widget=forms.Select(attrs={'class': 'form-control product-select'}))
@@ -68,7 +68,7 @@ class PurchaseOrderItemForm(forms.ModelForm):
             ('litre', 'Liters'),
             ('gallon', 'Gallons'),
             ('pichinga', 'Pichingas')
-        ],
+        ], 
         widget=forms.Select(attrs={'class': 'form-control unit-select'})
     )
     unit_cost = forms.DecimalField(label="Unit Cost (for selected unit)", min_value=Decimal('0.00'), widget=forms.NumberInput(attrs={'class': 'form-control unit-cost'}))

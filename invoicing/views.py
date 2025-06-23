@@ -258,5 +258,65 @@ def ajax_add_supplier(request):
             return JsonResponse({'status': 'error', 'errors': errors}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
 
+# === Customer CRUD Views ===
+@login_required
+def customer_list_view(request):
+    customers = Customer.objects.all().order_by('name')
+    return render(request, 'invoicing/customer_list.html', {'customers': customers, 'title': _('Customers')})
+
+@login_required
+def customer_detail_view(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    # Pasamos 'object' para consistencia con la plantilla de confirmación de borrado
+    # y 'customer' para acceso directo en la plantilla de detalle.
+    return render(request, 'invoicing/customer_detail.html', {'object': customer, 'customer': customer, 'title': customer.name})
+
+@login_required
+@group_required('Admin', 'Salesperson') # Ajusta los permisos de grupo según necesites
+def customer_create_view(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            customer = form.save()
+            messages.success(request, _('Customer "%(name)s" created successfully.') % {'name': customer.name})
+            return redirect('invoicing:customer_list')
+    else:
+        form = CustomerForm()
+    return render(request, 'invoicing/customer_form.html', {'form': form, 'title': _('Create New Customer')})
+
+@login_required
+@group_required('Admin', 'Salesperson') # Ajusta los permisos de grupo según necesites
+def customer_update_view(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == 'POST':
+        form = CustomerForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Customer "%(name)s" updated successfully.') % {'name': customer.name})
+            return redirect('invoicing:customer_detail', pk=customer.pk)
+    else:
+        form = CustomerForm(instance=customer)
+    # Pasamos 'object' para la plantilla de formulario por si se reusa con 'delete'
+    return render(request, 'invoicing/customer_form.html', {'form': form, 'object': customer, 'title': _('Edit %s') % customer.name})
+
+@login_required
+@group_required('Admin') # Eliminar suele ser una acción más restringida
+def customer_delete_view(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    if request.method == 'POST': # Confirmación de borrado
+        try:
+            customer_name = customer.name # Guardar nombre para el mensaje
+            customer.delete()
+            messages.success(request, _('Customer "%(name)s" deleted successfully.') % {'name': customer_name})
+            return redirect('invoicing:customer_list')
+        except models.ProtectedError as e:
+            messages.error(request, _("Cannot delete customer '%(name)s' as it is linked to other records. Details: %(error)s") % {'name': customer.name, 'error': e})
+            return redirect('invoicing:customer_detail', pk=pk)
+        except Exception as e:
+            messages.error(request, _("An unexpected error occurred while trying to delete customer '%(name)s'. Error: %(error)s") % {'name': customer.name, 'error': e})
+            return redirect('invoicing:customer_detail', pk=pk)
+    # Para peticiones GET, se muestra la plantilla de confirmación
+    return render(request, 'invoicing/customer_confirm_delete.html', {'object': customer, 'title': _('Delete Customer: %s') % customer.name})
+
 
 

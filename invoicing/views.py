@@ -173,3 +173,62 @@ def customer_delete_view(request, pk):
     # Para peticiones GET, se muestra la plantilla de confirmación
     return render(request, 'invoicing/customer_confirm_delete.html', {'object': customer, 'title': _('Delete Customer: %s') % customer.name})
 
+# === Supplier CRUD Views ===
+@login_required
+def supplier_list_view(request):
+    suppliers = Supplier.objects.all().order_by('name')
+    return render(request, 'invoicing/supplier_list.html', {'suppliers': suppliers, 'title': _('Suppliers')})
+
+@login_required
+def supplier_detail_view(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    # Pasamos 'object' para consistencia con la plantilla de confirmación de borrado
+    # y 'supplier' para acceso directo en la plantilla de detalle (aunque 'object' sería suficiente).
+    return render(request, 'invoicing/supplier_detail.html', {'object': supplier, 'supplier': supplier, 'title': supplier.name})
+
+@login_required
+@group_required('Admin', 'InventoryManager') # Ajusta los permisos de grupo según necesites
+def supplier_create_view(request):
+    if request.method == 'POST':
+        form = SupplierForm(request.POST)
+        if form.is_valid():
+            supplier = form.save()
+            messages.success(request, _('Supplier "%(name)s" created successfully.') % {'name': supplier.name})
+            return redirect('invoicing:supplier_list')
+    else:
+        form = SupplierForm()
+    return render(request, 'invoicing/supplier_form.html', {'form': form, 'title': _('Create New Supplier')})
+
+@login_required
+@group_required('Admin', 'InventoryManager') # Ajusta los permisos de grupo según necesites
+def supplier_update_view(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if request.method == 'POST':
+        form = SupplierForm(request.POST, instance=supplier)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Supplier "%(name)s" updated successfully.') % {'name': supplier.name})
+            return redirect('invoicing:supplier_detail', pk=supplier.pk)
+    else:
+        form = SupplierForm(instance=supplier)
+    return render(request, 'invoicing/supplier_form.html', {'form': form, 'object': supplier, 'title': _('Edit %s') % supplier.name})
+
+@login_required
+@group_required('Admin') # Eliminar suele ser una acción más restringida
+def supplier_delete_view(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    if request.method == 'POST': # Confirmación de borrado
+        try:
+            supplier_name = supplier.name # Guardar nombre para el mensaje
+            supplier.delete()
+            messages.success(request, _('Supplier "%(name)s" deleted successfully.') % {'name': supplier_name})
+            return redirect('invoicing:supplier_list')
+        except models.ProtectedError as e:
+            messages.error(request, _("Cannot delete supplier '%(name)s' as it is linked to other records. Details: %(error)s") % {'name': supplier.name, 'error': e})
+            return redirect('invoicing:supplier_detail', pk=pk)
+        except Exception as e:
+            messages.error(request, _("An unexpected error occurred while trying to delete supplier '%(name)s'. Error: %(error)s") % {'name': supplier.name, 'error': e})
+            return redirect('invoicing:supplier_detail', pk=pk)
+    # Para peticiones GET, se muestra la plantilla de confirmación
+    return render(request, 'invoicing/supplier_confirm_delete.html', {'object': supplier, 'title': _('Delete Supplier: %s') % supplier.name})
+

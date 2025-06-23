@@ -1,36 +1,9 @@
-# invoicing/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import Group
-from django.http import HttpResponse, JsonResponse # Asegúrate que JsonResponse esté aquí
-from django.contrib import messages
-from django.db import transaction, models # 'models' es para models.ProtectedError
-from decimal import Decimal
-from django.utils.translation import gettext_lazy as _ # Para traducción
+from django.http import HttpResponse
 
-# Modelos de tu aplicación
-from .models import (
-    Product, Invoice, InvoiceItem, PurchaseOrder, PurchaseOrderItem,
-    Customer, Supplier, Role # Customer, Supplier y Role son importantes aquí
-)
-
-# Formularios de tu aplicación
-from .forms import (
-    ProductForm, AddStockForm,
-    InvoiceForm, InvoiceItemFormSet,
-    PurchaseOrderForm, PurchaseOrderItemFormSet,
-    CustomerForm, SupplierForm, CustomerQuickAddForm, SupplierQuickAddForm # Formularios de Customer y Supplier
-)
-
-# Conversion factors (asegúrate que esté definido globalmente o antes de las vistas que lo usan)
-CONVERSION_FACTORS_ML = {
-    'ml': Decimal('1.0'),
-    'litre': Decimal('1000.0'),
-    'gallon': Decimal('3785.41'),
-    'pichinga': Decimal('18927.1'), # Asegúrate que esta línea esté presente
-}
-
-# Decorator for role-based access (asegúrate que esté definido)
+# Decorator for role-based access
 def group_required(*group_names):
     """Requires user membership in at least one of the groups passed in."""
     def in_groups(u):
@@ -38,7 +11,8 @@ def group_required(*group_names):
             if bool(u.groups.filter(name__in=group_names)) | u.is_superuser:
                 return True
         return False
-    return user_passes_test(in_groups, login_url='login')
+    return user_passes_test(in_groups, login_url='login') # Redirect to login if test fails
+
 @login_required
 def home_view(request):
     return render(request, 'invoicing/home.html')
@@ -50,6 +24,15 @@ def restricted_view(request):
 
 # Django's built-in views (LoginView, LogoutView) will be used via django.contrib.auth.urls
 # We just need to provide the templates.
+
+from django.shortcuts import get_object_or_404 # Already have render, redirect
+from .models import Product, Invoice, InvoiceItem, PurchaseOrder, PurchaseOrderItem # Add new models
+from .forms import ProductForm, AddStockForm, InvoiceForm, InvoiceItemFormSet, PurchaseOrderForm, PurchaseOrderItemFormSet # Add new forms
+from django.contrib import messages # Import messages
+from django.db import transaction # For atomic operations
+from decimal import Decimal # For precise calculations
+from django.urls import reverse
+
 @login_required
 # @group_required('Admin', 'InventoryManager') # Add 'InventoryManager' if that group is planned
 def product_list_view(request):

@@ -232,3 +232,31 @@ def supplier_delete_view(request, pk):
     # Para peticiones GET, se muestra la plantilla de confirmación
     return render(request, 'invoicing/supplier_confirm_delete.html', {'object': supplier, 'title': _('Delete Supplier: %s') % supplier.name})
 
+# === AJAX Views for Quick Add ===
+@login_required
+def ajax_add_customer(request):
+    if request.method == 'POST':
+        form = CustomerQuickAddForm(request.POST)
+        if form.is_valid():
+            customer = form.save()
+            return JsonResponse({'status': 'success', 'customer_id': customer.pk, 'customer_name': customer.name})
+        else:
+            # Collect form errors into a serializable format
+            errors = {field: [e for e in error_list] for field, error_list in form.errors.items()}
+            return JsonResponse({'status': 'error', 'errors': errors}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@login_required
+def ajax_add_supplier(request):
+    if request.method == 'POST':
+        form = SupplierQuickAddForm(request.POST)
+        if form.is_valid():
+            supplier = form.save()
+            return JsonResponse({'status': 'success', 'supplier_id': supplier.pk, 'supplier_name': supplier.name})
+        else:
+            errors = {field: [e for e in error_list] for field, error_list in form.errors.items()}
+            return JsonResponse({'status': 'error', 'errors': errors}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+

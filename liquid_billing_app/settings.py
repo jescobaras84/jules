@@ -34,7 +34,7 @@ ALLOWED_HOSTS_ENV = os.environ.get('DJANGO_ALLOWED_HOSTS')
 if ALLOWED_HOSTS_ENV:
     ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(',')]
 elif DEBUG: # If DEBUG is True and no env var, allow typical local dev hosts
-    ALLOWED_HOSTS = ['jules-ikyj.onrender.com','localhost', '127.0.0.1', '[::1]'] # Django's default if empty & DEBUG=True
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]'] # Django's default if empty & DEBUG=True
 else: # DEBUG is False and no env var
     ALLOWED_HOSTS = [] # This will cause Django to not serve requests until configured.
                        # Or raise ImproperlyConfigured as a stricter measure.
